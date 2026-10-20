@@ -95,9 +95,11 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid 
 .sb-art svg{flex:1;min-width:0}
 .sb-cap{font-size:11.5px;font-weight:500;margin-top:6px;opacity:.8}
 .slide .go{display:inline-flex;align-items:center;gap:4px;margin-top:14px;background:var(--brown);color:var(--kakao);font-weight:600;font-size:13.5px;padding:10px 14px;border-radius:12px}
-.dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:6px;pointer-events:none}
-.dots span{width:6px;height:6px;border-radius:999px;background:var(--brown);opacity:.3;transition:width .2s,opacity .2s}
-.dots span.on{width:18px;opacity:1}
+/* banner pager: tap a dot to move between the two schemes (no auto-rotation) */
+.dots{position:absolute;left:0;right:0;bottom:4px;display:flex;justify-content:center;gap:2px}
+.dots button{padding:10px 5px;display:grid;place-items:center;border-radius:999px}
+.dots button i{display:block;width:8px;height:8px;border-radius:999px;background:var(--brown);opacity:.3;transition:width .2s,opacity .2s}
+.dots button[aria-current="true"] i{width:22px;opacity:1}
 @keyframes grow{from{transform:scaleY(.08)}to{transform:scaleY(1)}}
 .hero-art .bar{transform-origin:50% 100%;transform-box:fill-box;animation:grow .7s cubic-bezier(.2,.8,.2,1) both}
 @keyframes drift{from{transform:translateY(0)}to{transform:translateY(-5px)}}
@@ -327,7 +329,10 @@ footer b{color:var(--fg)}
     </article>
 
   </div>
-  <div class="dots" id="dots" aria-hidden="true"><span class="on"></span><span></span></div>
+  <div class="dots" id="dots" role="group" aria-label="배너 선택">
+    <button type="button" data-slide="0" aria-current="true" aria-label="26주 통신비 챌린지 배너"><i></i></button>
+    <button type="button" data-slide="1" aria-current="false" aria-label="세이프박스 이자로 내는 통신비 배너"><i></i></button>
+  </div>
 </section>
 
 <section class="strip">
@@ -556,16 +561,14 @@ footer b{color:var(--fg)}
     toastTimer = setTimeout(function(){ t.classList.remove("on"); }, 2600);
   });
 
-  /* ---------- hero carousel: swipe + auto-rotate every 5s, pauses while touched/hovered ---------- */
-  var rail = $("rail"), dots = $("dots").children, idx = 0, timer, paused = false;
+  /* ---------- hero carousel: swipe or tap a pager dot; no auto-rotation ---------- */
+  var rail = $("rail"), dots = $("dots").querySelectorAll("button"), idx = 0;
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function goTo(i){ idx = (i+2)%2; rail.scrollTo({left: idx*rail.clientWidth, behavior: reduce?"auto":"smooth"}); }
-  function syncDots(){ var i = Math.round(rail.scrollLeft/rail.clientWidth); if(i!==idx){ idx=i; } for(var k=0;k<dots.length;k++) dots[k].classList.toggle("on", k===idx); }
-  function start(){ stop(); if(reduce) return; timer = setInterval(function(){ if(!paused && document.visibilityState==="visible") goTo(idx+1); }, 5000); }
-  function stop(){ clearInterval(timer); }
+  function paint(){ dots.forEach(function(d,k){ d.setAttribute("aria-current", String(k===idx)); }); }
+  function goTo(i){ idx = Math.max(0, Math.min(dots.length-1, i)); paint(); rail.scrollTo({left: idx*rail.clientWidth, behavior: reduce?"auto":"smooth"}); }
+  function syncDots(){ var i = Math.round(rail.scrollLeft/rail.clientWidth); if(i!==idx){ idx=i; paint(); } }
+  dots.forEach(function(d){ d.addEventListener("click", function(){ goTo(+d.getAttribute("data-slide")); }); });
   rail.addEventListener("scroll", function(){ clearTimeout(rail._t); rail._t = setTimeout(syncDots, 80); }, {passive:true});
-  ["touchstart","pointerdown","mouseenter","focusin"].forEach(function(ev){ rail.addEventListener(ev, function(){ paused = true; }, {passive:true}); });
-  ["touchend","pointerup","mouseleave","focusout"].forEach(function(ev){ rail.addEventListener(ev, function(){ paused = false; }, {passive:true}); });
   window.addEventListener("resize", function(){ rail.scrollTo({left: idx*rail.clientWidth}); fitHeadlines(); });
 
   /* one-line hook messages: shrink the headline until it fits the slide width (min 15px) */
@@ -582,7 +585,6 @@ footer b{color:var(--fg)}
   setTimeout(fitHeadlines, 400); setTimeout(fitHeadlines, 1500); /* CJK fallback fonts load lazily and change widths */
 
   renderPlans();
-  start();
 })();
 </script>
 </body>
