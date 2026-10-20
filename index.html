@@ -572,7 +572,7 @@ footer b{color:var(--fg)}
   function fitHeadlines(){
     document.querySelectorAll(".slide h1.fit").forEach(function(h){
       var size = 26; h.style.fontSize = size + "px";
-      var max = h.parentElement.clientWidth;
+      var max = h.clientWidth; /* own content box, excludes the slide's side gutter */
       while(h.scrollWidth > max && size > 15){ size -= 0.5; h.style.fontSize = size + "px"; }
     });
   }
