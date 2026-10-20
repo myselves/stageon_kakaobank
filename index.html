@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>카카오뱅크 통신 요금제</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* Layout: one phone-width column (max 480px) of full-bleed bands. Kakao yellow hero carousel that
+   rotates the two pricing schemes (26주적금 / 세이프박스), warm-grey content, scheme tabs + plan cards,
+   sticky bottom CTA that follows the selected scheme and plan. Tokens mirror the 카카오멤버십 요금제 page. */
+:root{
+  --kakao:#FEE500;        /* 카카오 옐로우 */
+  --kakao-deep:#F6D300;
+  --ink:#191919;          /* 카카오 블랙 */
+  --brown:#3C1E1E;        /* 옐로우 위 텍스트용 카카오 브라운 */
+  --bg:#F6F5F0;           /* 노란 기운이 도는 따뜻한 회색 */
+  --card:#FFFFFF;
+  --fg:#191919;
+  --muted:#6B6760;
+  --line:#E8E5DC;
+  --soft:#FFF8C2;         /* 연한 옐로우 배경 */
+  --accent:#191919;
+  --accent-fg:#FEE500;
+  --ok:#2A9D5C;
+  --danger:#E0522D;
+  --blue:#1F5EFF;         /* 요금 스킴 자료의 포인트 블루 */
+  --shadow:0 8px 24px rgba(60,30,30,.08);
+  --font:"Pretendard",-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141414;--card:#1F1F1F;--fg:#F3F1EA;--muted:#A9A49A;--line:#2E2D2A;
+    --soft:#2B2810;--accent:#FEE500;--accent-fg:#191919;--blue:#7DA2FF;--shadow:0 8px 24px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141414;--card:#1F1F1F;--fg:#F3F1EA;--muted:#A9A49A;--line:#2E2D2A;
+  --soft:#2B2810;--accent:#FEE500;--accent-fg:#191919;--blue:#7DA2FF;--shadow:0 8px 24px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--kakao)}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.25}
+b,strong{font-weight:500}
+p{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid #2E7BFF;outline-offset:2px;border-radius:8px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:480px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band{width:100%}
+.band.yellow{background:var(--kakao);color:var(--brown)}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--kakao);color:var(--brown)}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:52px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:17px;letter-spacing:-.01em}
+.brand .sf{display:inline-flex;align-items:center;gap:4px;background:var(--brown);color:var(--kakao);padding:3px 8px;border-radius:8px;font-size:13px;letter-spacing:0}
+.proto{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border:1.5px solid var(--brown);border-radius:999px;padding:3px 8px;opacity:.75}
+
+/* hero carousel: two scheme banners, swipe or auto-rotate */
+.hero{position:relative}
+.rail{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.rail::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;min-width:0}
+.slide .wrap{padding-block:18px 22px;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--brown)}
+.slide h1{font-size:29px;font-weight:700;letter-spacing:-.03em;margin-top:10px}
+.slide h1 em{font-style:normal;background:var(--brown);color:var(--kakao);padding:0 8px;border-radius:10px;display:inline-block;line-height:1.3}
+.slide .lead{margin-top:10px;font-size:13.5px;font-weight:500;letter-spacing:-.02em;word-break:keep-all;line-height:1.45}
+@media (min-width:430px){.slide .lead{font-size:14px}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.chip{background:rgba(255,255,255,.55);color:var(--brown);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:500}
+.chip.dark{background:var(--brown);color:var(--kakao)}
+.hero-art{margin:16px 0 0}
+.hero-art svg{display:block;width:100%;height:auto;max-width:100%}
+.slide .go{display:inline-flex;align-items:center;gap:4px;margin-top:14px;background:var(--brown);color:var(--kakao);font-weight:600;font-size:13.5px;padding:10px 14px;border-radius:12px}
+.dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:6px;pointer-events:none}
+.dots span{width:6px;height:6px;border-radius:999px;background:var(--brown);opacity:.3;transition:width .2s,opacity .2s}
+.dots span.on{width:18px;opacity:1}
+@keyframes grow{from{transform:scaleY(.08)}to{transform:scaleY(1)}}
+.hero-art .bar{transform-origin:50% 100%;transform-box:fill-box;animation:grow .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes drift{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+.hero-art .coin{animation:drift 1.6s ease-in-out infinite alternate}
+
+/* value strip */
+.strip{background:var(--ink);color:#FFF}
+.strip .wrap{display:grid;grid-template-columns:repeat(3,1fr);padding-block:14px;gap:8px}
+.strip .k{font-size:11.5px;color:#C9C5BA;font-weight:500;white-space:nowrap}
+.strip .v{font-size:15px;font-weight:600;color:var(--kakao);letter-spacing:-.01em;margin-top:2px}
+
+/* sections */
+.sec .wrap{padding-block:28px 6px}
+.sec-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.sec-title h2{font-size:21px;font-weight:600;letter-spacing:-.02em}
+.sec-title .sub{font-size:12.5px;color:var(--muted);font-weight:500;white-space:nowrap}
+.sec-desc{color:var(--muted);font-size:13.5px;margin-top:6px;word-break:keep-all;letter-spacing:-.01em}
+
+/* scheme tabs */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:16px;background:var(--line);border-radius:16px;padding:4px}
+.tabs button{border-radius:12px;padding:10px 8px;font-weight:600;font-size:14px;letter-spacing:-.01em;color:var(--muted);display:grid;gap:2px;text-align:center}
+.tabs button small{font-size:11px;font-weight:500;letter-spacing:0}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--kakao)}
+.scheme-note{margin-top:12px;background:var(--card);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);display:grid;gap:4px}
+.scheme-note .f{font-weight:600;font-size:14.5px;letter-spacing:-.01em}
+.scheme-note .f .num{color:var(--blue)}
+.scheme-note .d{font-size:12.5px;color:var(--muted);word-break:keep-all;letter-spacing:-.01em}
+
+/* plan cards */
+.plans{display:grid;gap:12px;margin-top:14px}
+.plan{position:relative;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:16px 16px 14px;text-align:left;width:100%;
+  box-shadow:var(--shadow);transition:border-color .15s,transform .15s;display:grid;gap:10px}
+.plan:active{transform:scale(.995)}
+.plan[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 3px var(--kakao),var(--shadow)}
+:root[data-theme="dark"] .plan[aria-pressed="true"]{border-color:var(--kakao)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .plan[aria-pressed="true"]{border-color:var(--kakao)}}
+.plan .head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.plan .data{font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.plan .data small{font-size:15px;font-weight:500;margin-left:2px}
+.plan .name{font-size:13px;color:var(--muted);font-weight:500;margin-top:4px}
+.badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.badge{font-size:11px;font-weight:500;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.badge.kakao{background:var(--kakao);color:var(--brown)}
+.badge.reco{background:var(--ink);color:var(--kakao)}
+.badge.hot{background:#FFE4DC;color:#C13C1B}
+.plan .price{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.plan .price .won{font-size:26px;font-weight:700;letter-spacing:-.03em}
+.plan .price .per{font-size:13px;color:var(--muted)}
+.plan .price .strike{font-size:13px;color:var(--muted);text-decoration:line-through}
+.plan .price .zero{margin-left:auto;font-size:13px;font-weight:600;color:var(--ok);white-space:nowrap}
+.plan .incl{font-size:12.5px;font-weight:400;letter-spacing:-.02em;word-break:keep-all;color:var(--brown);background:var(--soft);border-radius:12px;padding:9px 12px;margin:0}
+.plan .incl b{font-weight:600}
+:root[data-theme="dark"] .plan .incl{color:var(--fg)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .plan .incl{color:var(--fg)}}
+.specs{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+.specs span::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--kakao-deep);margin-right:6px;vertical-align:1px}
+.plan .check{position:absolute;right:14px;bottom:14px;width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center}
+.plan[aria-pressed="true"] .check{background:var(--ink);border-color:var(--ink)}
+.plan .check svg{width:14px;height:14px;opacity:0}
+.plan[aria-pressed="true"] .check svg{opacity:1}
+/* month ladder inside 26주 cards */
+.ladder{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;align-items:end;height:44px;padding-right:34px}
+.ladder i{display:block;background:var(--blue);border-radius:3px 3px 0 0;min-height:3px;opacity:.9}
+.ladder i.z{background:var(--ok);height:3px!important}
+.ladder-l{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:10px;color:var(--muted);text-align:center;padding-right:34px;margin-top:-4px}
+/* interest meter inside 세이프박스 cards */
+.meter{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:12px;color:var(--muted);padding-right:34px}
+.meter .track{height:8px;border-radius:999px;background:var(--line);position:relative;overflow:hidden}
+.meter .track i{position:absolute;inset:0 auto 0 0;background:var(--blue);border-radius:999px}
+.meter .track em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ok)}
+.meter b{color:var(--fg);font-weight:600}
+
+/* detail table for the selected plan */
+.detail{margin-top:14px;background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:14px 16px 16px}
+.detail .h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.detail .h b{font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+.detail .h span{font-size:12px;color:var(--muted);white-space:nowrap}
+.tbl{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;white-space:nowrap}
+th,td{padding:8px 8px;text-align:right;border-bottom:1px solid var(--line)}
+th{font-weight:500;color:var(--muted);font-size:11.5px}
+th:first-child,td:first-child{text-align:left;padding-left:0}
+th:last-child,td:last-child{padding-right:0}
+tr:last-child td{border-bottom:0}
+td.hi{color:var(--blue);font-weight:600}
+td.ok{color:var(--ok);font-weight:600}
+.kv{display:grid;gap:0;margin-top:8px}
+.kv div{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.kv div:last-child{border-bottom:0}
+.kv span{color:var(--muted)}
+.kv b{font-weight:600}
+.kv b.blue{color:var(--blue)}
+.kv b.ok{color:var(--ok)}
+
+/* how it works */
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.feat div{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+.feat .ic{width:34px;height:34px;border-radius:10px;background:var(--kakao);display:grid;place-items:center;margin-bottom:8px}
+.feat .ic svg{width:20px;height:20px}
+.feat b{display:block;font-size:14px;letter-spacing:-.01em}
+.feat span{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+.steps{display:grid;gap:0;margin-top:14px;background:var(--card);border-radius:20px;padding:6px 16px;box-shadow:var(--shadow)}
+.step{display:grid;grid-template-columns:30px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:start}
+.step:last-child{border-bottom:0}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--kakao);color:var(--brown);font-weight:600;display:grid;place-items:center;font-size:14px}
+.step b{font-size:14.5px;letter-spacing:-.01em}
+.step span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+
+/* faq */
+.faq{margin-top:14px;display:grid;gap:8px}
+.faq details{background:var(--card);border-radius:16px;box-shadow:var(--shadow)}
+.faq summary{list-style:none;cursor:pointer;padding:14px 16px;font-weight:500;font-size:14.5px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:20px;font-weight:400;color:var(--muted);flex:none}
+.faq details[open] summary::after{content:"–"}
+.faq .a{padding:0 16px 14px;font-size:13.5px;color:var(--muted)}
+
+/* footnotes & footer */
+.fine{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
+.fine li{margin-bottom:4px}
+.fine ul{padding-left:16px;margin:6px 0 0}
+footer .wrap{padding-block:26px 30px;font-size:12px;color:var(--muted)}
+footer b{color:var(--fg)}
+
+/* sticky CTA */
+.cta{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -8px 24px rgba(0,0,0,.08)}
+.cta .wrap{display:flex;align-items:center;gap:12px;height:76px}
+.cta .sel{min-width:0;flex:1}
+.cta .sel .l{font-size:11.5px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cta .sel .p{font-size:16px;font-weight:600;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cta .btn{flex:none;background:var(--kakao);color:var(--brown);font-weight:600;font-size:15px;padding:0 20px;height:48px;border-radius:14px;display:inline-flex;align-items:center;gap:6px}
+.cta .btn:active{background:var(--kakao-deep)}
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--kakao);
+  padding:10px 16px;border-radius:12px;font-weight:500;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:30;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.rail{scroll-behavior:auto}}
+</style>
+
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="sf">5G</span><span>카카오뱅크 통신</span></div>
+    <span class="proto">Prototype</span>
+  </div>
+</header>
+
+<section class="band yellow hero" aria-roledescription="carousel" aria-label="요금제 스킴 소개">
+  <div class="rail" id="rail">
+
+    <article class="slide" id="slide-26" aria-roledescription="slide" aria-label="1 / 2 · 26주 통신비 챌린지">
+      <div class="wrap">
+        <span class="eyebrow">26주적금 × 통신</span>
+        <h1>26주를 완주하면<br>통신비가 <em>0원</em></h1>
+        <p class="lead">26주적금 자동이체에 성공할 때마다 다음 달 요금이 1/3씩 내려가요. 적금 만기 축하금과 0원 고지서가 같은 달에 도착해요.</p>
+        <div class="chips">
+          <span class="chip dark">만기월 통신비 0원</span>
+          <span class="chip">7개월 총액은 할인 요금제와 동일</span>
+          <span class="chip">약정 없음</span>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 448 128" width="448" height="128">
+            <!-- 7-month ladder, 30GB+_M example, bar height ∝ 요금 (19,800 → 0) -->
+            <g font-family="inherit" font-size="11" font-weight="500" fill="#3C1E1E">
+              <rect class="bar" x="8"   y="18" width="48" height="84" rx="6" fill="#3C1E1E" style="animation-delay:.05s"/>
+              <rect class="bar" x="72"  y="32" width="48" height="70" rx="6" fill="#3C1E1E" style="animation-delay:.15s"/>
+              <rect class="bar" x="136" y="46" width="48" height="56" rx="6" fill="#3C1E1E" style="animation-delay:.25s"/>
+              <rect class="bar" x="200" y="60" width="48" height="42" rx="6" fill="#3C1E1E" style="animation-delay:.35s"/>
+              <rect class="bar" x="264" y="74" width="48" height="28" rx="6" fill="#3C1E1E" style="animation-delay:.45s"/>
+              <rect class="bar" x="328" y="88" width="48" height="14" rx="6" fill="#3C1E1E" style="animation-delay:.55s"/>
+              <rect x="392" y="98" width="48" height="4" rx="2" fill="#2A9D5C"/>
+              <text x="32"  y="12" text-anchor="middle">19,800</text>
+              <text x="416" y="90" text-anchor="middle" font-weight="700" fill="#2A9D5C" font-size="13">0원</text>
+              <g fill="#3C1E1E" opacity=".65" font-size="10.5">
+                <text x="32"  y="120" text-anchor="middle">1개월차</text>
+                <text x="96"  y="120" text-anchor="middle">2</text>
+                <text x="160" y="120" text-anchor="middle">3</text>
+                <text x="224" y="120" text-anchor="middle">4</text>
+                <text x="288" y="120" text-anchor="middle">5</text>
+                <text x="352" y="120" text-anchor="middle">6</text>
+                <text x="416" y="120" text-anchor="middle" font-weight="700" opacity="1">만기월</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <button class="go" type="button" data-go="26">26주 챌린지 요금제 보기 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </article>
+
+    <article class="slide" id="slide-sb" aria-roledescription="slide" aria-label="2 / 2 · 세이프박스 이자로 내는 통신비">
+      <div class="wrap">
+        <span class="eyebrow">세이프박스 × 통신</span>
+        <h1>387만원 맡기면<br>통신비 <em>평생 0원</em></h1>
+        <p class="lead">세이프박스 연 1.8% 이자가 매달 통신비를 대신 내요. 원금은 그대로 두고, 필요하면 언제든 전액 꺼낼 수 있어요.</p>
+        <div class="chips">
+          <span class="chip dark">세이프박스 연 1.8%</span>
+          <span class="chip">원금 손실 없음</span>
+          <span class="chip">언제든 전액 회수</span>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 448 128" width="448" height="128">
+            <!-- safebox on the left, interest coins flowing to a phone bill on the right -->
+            <g>
+              <rect x="14" y="22" width="150" height="92" rx="14" fill="#3C1E1E"/>
+              <rect x="30" y="38" width="118" height="60" rx="8" fill="none" stroke="#FEE500" stroke-width="2" opacity=".55"/>
+              <circle cx="89" cy="68" r="16" fill="none" stroke="#FEE500" stroke-width="3"/>
+              <circle cx="89" cy="68" r="5" fill="#FEE500"/>
+              <path d="M89 52v-6M89 90v-6M73 68h-6M111 68h-6" stroke="#FEE500" stroke-width="3" stroke-linecap="round"/>
+              <text x="89" y="20" text-anchor="middle" font-size="11" font-weight="600" fill="#3C1E1E">세이프박스 · 원금 3,870,000원</text>
+            </g>
+            <g class="coin" style="animation-delay:0s"><circle cx="200" cy="66" r="11" fill="#3C1E1E"/><text x="200" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#FEE500">₩</text></g>
+            <g class="coin" style="animation-delay:.4s"><circle cx="236" cy="56" r="11" fill="#3C1E1E"/><text x="236" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#FEE500">₩</text></g>
+            <g class="coin" style="animation-delay:.8s"><circle cx="272" cy="66" r="11" fill="#3C1E1E"/><text x="272" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#FEE500">₩</text></g>
+            <text x="236" y="96" text-anchor="middle" font-size="10.5" fill="#3C1E1E" opacity=".7">월 이자 4,911원</text>
+            <g>
+              <rect x="316" y="14" width="118" height="104" rx="14" fill="#3C1E1E"/>
+              <rect x="328" y="26" width="94" height="80" rx="8" fill="#FEE500"/>
+              <text x="375" y="48" text-anchor="middle" font-size="10" fill="#3C1E1E" opacity=".7">10월 통신요금</text>
+              <text x="375" y="78" text-anchor="middle" font-size="24" font-weight="700" fill="#3C1E1E">0원</text>
+              <text x="375" y="96" text-anchor="middle" font-size="9.5" fill="#2A9D5C" font-weight="600">이자로 납부 완료</text>
+            </g>
+          </svg>
+        </div>
+        <button class="go" type="button" data-go="sb">세이프박스 요금제 보기 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </article>
+
+  </div>
+  <div class="dots" id="dots" aria-hidden="true"><span class="on"></span><span></span></div>
+</section>
+
+<section class="strip">
+  <div class="wrap">
+    <div><div class="k">세이프박스</div><div class="v">연 1.8%</div></div>
+    <div><div class="k">26주적금</div><div class="v">만기월 0원</div></div>
+    <div><div class="k">약정·위약금</div><div class="v">없음</div></div>
+  </div>
+</section>
+
+<section class="sec" id="plans">
+  <div class="wrap">
+    <div class="sec-title"><h2>요금제 고르기</h2><span class="sub">스킴 선택 후 요금제 선택</span></div>
+    <p class="sec-desc">통신비를 내는 방식을 먼저 고르세요. 26주적금으로 7개월간 0원까지 내려가거나, 세이프박스 이자로 계속 0원을 만들 수 있어요.</p>
+
+    <div class="tabs" role="tablist" aria-label="요금 스킴">
+      <button type="button" role="tab" id="tab-26" aria-selected="true" aria-controls="panel-26" data-scheme="26">26주 통신비 챌린지<small>26주적금 결합 · 만기월 0원</small></button>
+      <button type="button" role="tab" id="tab-sb" aria-selected="false" aria-controls="panel-sb" data-scheme="sb">이자로 내는 통신비<small>세이프박스 결합 · 평생 0원</small></button>
+    </div>
+
+    <div id="panel-26" role="tabpanel" aria-labelledby="tab-26">
+      <div class="scheme-note">
+        <div class="f">n개월차 요금 = 기준가 × <span class="num">(7 − n) ÷ 3</span></div>
+        <div class="d">매월 기준가의 1/3씩 내려가요. 26주적금 자동이체를 연속 성공하면 유지되고, 7개월 총액은 7개월 할인 요금제와 같아요. 기준가는 7개월 할인 프로모션가예요.</div>
+      </div>
+      <div class="plans" id="plans-26" role="group" aria-label="26주 챌린지 요금제 선택"></div>
+      <div class="detail" id="detail-26"></div>
+    </div>
+
+    <div id="panel-sb" role="tabpanel" aria-labelledby="tab-sb" hidden>
+      <div class="scheme-note">
+        <div class="f">필요 예치금 = 월요금 × 12 ÷ <span class="num">연 1.8%</span></div>
+        <div class="d">세전 기준 월요금의 약 667배, 이자소득세 15.4%를 떼면 약 788배를 세이프박스에 두면 세후 이자가 월요금과 같아져요. 전 요금제가 세이프박스 한도 1억원 안이에요.</div>
+      </div>
+      <div class="plans" id="plans-sb" role="group" aria-label="세이프박스 요금제 선택"></div>
+      <div class="detail" id="detail-sb"></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="how">
+  <div class="wrap">
+    <div class="sec-title"><h2>어떻게 0원이 되나요</h2><span class="sub">카카오뱅크 앱에서 한 번에</span></div>
+    <div class="feat">
+      <div><span class="ic"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2.5" fill="#3C1E1E"/><path d="M8 3v4M16 3v4M4 10h16" stroke="#3C1E1E" stroke-width="2" stroke-linecap="round"/><path d="M8.5 15l2.5 2.5 4.5-5" stroke="#FEE500" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>26주적금 자동이체 연동</b><span>매주 납입 성공이 다음 달 요금 인하로</span></div>
+      <div><span class="ic"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="13" rx="3" fill="#3C1E1E"/><circle cx="12" cy="12.5" r="3" stroke="#FEE500" stroke-width="1.8"/><path d="M12 8.5v1.5M12 15v1.5M8 12.5h1.5M14.5 12.5H16" stroke="#FEE500" stroke-width="1.6" stroke-linecap="round"/></svg></span><b>세이프박스 이자 자동납부</b><span>매달 세후 이자로 통신요금 결제</span></div>
+      <div><span class="ic"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="10" rx="2" fill="#3C1E1E"/><rect x="6" y="10" width="4" height="4" rx="1" fill="#FEE500"/></svg></span><b>eSIM 즉시 개통</b><span>QR 한 번으로 바로 사용</span></div>
+      <div><span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="#3C1E1E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>언제든 해지</b><span>약정·위약금 없음, 원금 즉시 회수</span></div>
+    </div>
+
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div><b>스킴과 요금제 선택 후 본인인증</b><span>카카오뱅크 계좌로 로그인하면 적금·세이프박스가 자동 연결돼요</span></div></div>
+      <div class="step"><span class="n">2</span><div><b>26주적금 개설 또는 세이프박스 예치</b><span>챌린지는 자동이체 등록, 세이프박스는 권장 예치금 이체</span></div></div>
+      <div class="step"><span class="n">3</span><div><b>eSIM 개통 · 다음 달부터 요금 인하 시작</b><span>납입 성공과 이자 납부 내역을 카카오뱅크 앱에서 매달 확인해요</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="faq">
+  <div class="wrap">
+    <div class="sec-title"><h2>자주 묻는 질문</h2></div>
+    <div class="faq">
+      <details><summary>26주적금을 한 번 미납하면 어떻게 되나요?</summary><div class="a">미납한 다음 달부터 요금이 판매가로 돌아가요(정책 옵션). 다시 납입을 이어가면 그다음 달부터 인하 스케줄로 복귀해요.</div></details>
+      <details><summary>7개월이 끝나면 요금은 어떻게 되나요?</summary><div class="a">만기월 0원 이후에는 판매가가 적용돼요. 새 26주적금을 개설하면 챌린지를 다시 시작할 수 있고, 세이프박스 스킴으로 바꿀 수도 있어요.</div></details>
+      <details><summary>세이프박스 이율이 바뀌면 어떻게 되나요?</summary><div class="a">권장 예치금은 연 1.8%(세전) 기준이에요. 이율이 내려가면 모자란 금액만큼 요금이 청구되고, 올라가면 남는 이자는 세이프박스에 그대로 쌓여요.</div></details>
+      <details><summary>세이프박스 원금을 중간에 꺼낼 수 있나요?</summary><div class="a">네. 세이프박스는 언제든 전액 회수할 수 있어요. 꺼낸 달부터는 부족한 이자만큼 요금이 청구돼요.</div></details>
+      <details><summary>두 스킴을 동시에 쓸 수 있나요?</summary><div class="a">프로토타입에서는 하나만 선택해요. 26주 챌린지가 끝난 뒤 세이프박스 스킴으로 이어 가입하는 흐름을 권장해요.</div></details>
+    </div>
+
+    <div class="fine">
+      <b>유의사항</b>
+      <ul>
+        <li>본 페이지는 카카오뱅크 통신 서비스 요금 스킴 검토용 프로토타입이며, 실제 상품 조건과 다를 수 있어요.</li>
+        <li>26주 통신비 챌린지: n개월차 요금 = 기준가 × (7−n) ÷ 3, 기준가는 7개월 할인 프로모션가(5GB/100분_M은 판매가), 26주적금 자동이체 연속 성공 시 유지, 미납 시 익월부터 판매가 복귀(정책 옵션), VAT 포함.</li>
+        <li>세이프박스 결합: 연 1.8%(세전), 이자소득세 15.4% 가정. 필요 예치금(세후) = 월요금 × 12 ÷ 1.8% ÷ 84.6%, 권장 예치금은 1만원 단위 올림. 세이프박스 한도 1억원. 원금 손실 없음, 언제든 전액 회수 가능.</li>
+        <li>음성·문자 제공량, 소진 후 속도는 프로토타입 가정값이에요.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <b>카카오뱅크 통신</b> · 카카오뱅크 × 핀다이렉트 협력 모델 프로토타입<br>
+    5G 알뜰폰(MVNO) · 고객센터 1600-0000
+  </div>
+</footer>
+
+<div class="cta" role="region" aria-label="선택한 요금제">
+  <div class="wrap">
+    <div class="sel"><div class="l" id="cta-label">26주 통신비 챌린지</div><div class="p num" id="cta-text"></div></div>
+    <button class="btn" type="button" id="cta-btn">가입하기 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  /* ---------- data (출처: 카카오뱅크 요금제 스킴 자료, 세이프박스 연 1.8%로 현행화) ---------- */
+  var RATE = 0.018, TAX = 0.154;
+  var PLANS = {
+    "5m":  {code:"5G 5GB/100분_M",  data:"5", unit:"GB", name:"라이트 · 음성 100분", list:4900,  base:4900,  specs:["음성 100분","문자 100건","소진 후 400kbps","5G"]},
+    "5p":  {code:"5G 5GB+",         data:"5", unit:"GB+", name:"라이트 플러스 · 음성 기본제공", list:7900,  base:3900,  specs:["음성·문자 기본제공","소진 후 400kbps","5G"]},
+    "30":  {code:"5G 30GB+_M",      data:"30",unit:"GB+", name:"스탠다드 · 가장 많이 선택", list:16900, base:9900,  specs:["음성·문자 기본제공","소진 후 1Mbps","테더링 가능","5G"], badges:["reco:대표 요금제"]},
+    "50":  {code:"5G 50GB+_M",      data:"50",unit:"GB+", name:"플러스 · 영상도 넉넉하게", list:23900, base:null,  specs:["음성·문자 기본제공","소진 후 3Mbps","테더링 가능","5G"]},
+    "110": {code:"5G 110GB +5Mbps", data:"110",unit:"GB", name:"맥스 · 데이터 걱정 끝", list:39900, base:12000, specs:["음성·문자 기본제공","소진 후 5Mbps","테더링 가능","5G"], badges:["hot:인기"]}
+  };
+  var ORDER_26 = ["30","5m","5p","110"];           /* 26주 스킴 대상 4종 */
+  var ORDER_SB = ["30","5m","5p","50","110"];      /* 세이프박스 스킴 대상 5종 */
+
+  var won = function(n){ return Math.round(n).toLocaleString("ko-KR") + "원"; };
+  var man = function(n){ return Math.round(n/10000).toLocaleString("ko-KR") + "만원"; };
+  var month = function(base,n){ return Math.round(base*(7-n)/3); };
+  var schedule = function(base){ var a=[]; for(var n=1;n<=7;n++) a.push(month(base,n)); return a; };
+  var sb = function(list){
+    var pre = list*12/RATE, post = pre/(1-TAX), rec = Math.ceil(post/10000)*10000;
+    return {pre:pre, post:post, rec:rec, interest: rec*RATE*(1-TAX)/12};
+  };
+  var CHECK = '<span class="check" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" stroke="#FEE500" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+  var badgeHtml = function(p, extra){
+    var b = (p.badges||[]).map(function(s){ var x=s.split(":"); return '<span class="badge '+x[0]+'">'+x[1]+'</span>'; });
+    b.push('<span class="badge kakao">'+extra+'</span>');
+    return '<div class="badges">'+b.join("")+'</div>';
+  };
+  var specHtml = function(p){ return '<div class="specs">'+p.specs.map(function(s){return "<span>"+s+"</span>";}).join("")+'</div>'; };
+
+  /* ---------- 26주 cards ---------- */
+  function card26(id, on){
+    var p = PLANS[id], s = schedule(p.base), max = s[0];
+    var ladder = s.map(function(v,i){ return '<i style="height:'+Math.max(3, Math.round(v/max*44))+'px"'+(v===0?' class="z"':'')+'></i>'; }).join("");
+    var strike = p.list!==p.base ? '<span class="strike num">판매가 '+won(p.list)+'</span>' : '';
+    return '<button class="plan" type="button" data-plan="'+id+'" aria-pressed="'+on+'">'+
+      '<div class="head"><div><div class="data">'+p.data+'<small>'+p.unit+'</small></div><div class="name">'+p.code+' · '+p.name+'</div></div>'+badgeHtml(p,"26주적금 연동")+'</div>'+
+      '<div class="price"><span class="won num">1개월차 '+won(s[0])+'</span>'+strike+'<span class="zero">7개월차 0원</span></div>'+
+      '<div class="ladder" aria-hidden="true">'+ladder+'</div><div class="ladder-l" aria-hidden="true"><span>1M</span><span>2M</span><span>3M</span><span>4M</span><span>5M</span><span>6M</span><span>만기</span></div>'+
+      '<p class="incl">매달 <b>'+won(p.base/3)+'</b>씩 내려가요. 7개월 총 <b>'+won(p.base*7)+'</b>으로 기준가 '+won(p.base)+' × 7개월과 같아요.</p>'+
+      specHtml(p)+CHECK+'</button>';
+  }
+  function detail26(id){
+    var p = PLANS[id], s = schedule(p.base), sum = s.reduce(function(a,b){return a+b;},0);
+    var head = '<tr><th>요금제</th><th>기준가</th>'+s.map(function(_,i){return '<th>'+(i+1)+'개월차</th>';}).join("")+'<th>7개월 총액</th></tr>';
+    var row = '<tr><td>'+p.code+'</td><td class="hi num">'+p.base.toLocaleString("ko-KR")+'</td>'+
+      s.map(function(v){ return '<td class="num'+(v===0?' ok':'')+'">'+v.toLocaleString("ko-KR")+'</td>'; }).join("")+
+      '<td class="num">'+sum.toLocaleString("ko-KR")+'</td></tr>';
+    return '<div class="h"><b>'+p.code+' 월별 요금 스케줄</b><span>VAT 포함 · 단위 원</span></div>'+
+      '<div class="tbl"><table>'+head+row+'</table></div>'+
+      '<div class="kv"><div><span>26주적금 납입 성공 시</span><b>다음 달 요금 '+won(p.base/3)+' 인하</b></div>'+
+      '<div><span>적금 만기월(7개월차)</span><b class="ok">통신비 0원 + 만기 축하금</b></div>'+
+      '<div><span>7개월 총 납부액</span><b class="blue num">'+won(sum)+'</b></div></div>';
+  }
+
+  /* ---------- 세이프박스 cards ---------- */
+  function cardSb(id, on){
+    var p = PLANS[id], r = sb(p.list), cover = Math.min(100, r.interest/p.list*100);
+    return '<button class="plan" type="button" data-plan="'+id+'" aria-pressed="'+on+'">'+
+      '<div class="head"><div><div class="data">'+p.data+'<small>'+p.unit+'</small></div><div class="name">'+p.code+' · '+p.name+'</div></div>'+badgeHtml(p,"세이프박스 연동")+'</div>'+
+      '<div class="price"><span class="won num">예치 '+man(r.rec)+'</span><span class="per num">판매가 월 '+won(p.list)+'</span><span class="zero">매월 0원</span></div>'+
+      '<div class="meter" aria-hidden="true"><span>월 이자(세후)</span><span class="track"><i style="width:'+cover.toFixed(1)+'%"></i><em style="left:'+(p.list/r.interest*100).toFixed(1)+'%"></em></span><b class="num">'+won(r.interest)+'</b></div>'+
+      '<p class="incl">세이프박스에 <b>'+won(r.rec)+'</b>을 두면 세후 이자 <b>'+won(r.interest)+'</b>이 매달 요금 '+won(p.list)+'을 대신 내요. 원금은 그대로예요.</p>'+
+      specHtml(p)+CHECK+'</button>';
+  }
+  function detailSb(id){
+    var p = PLANS[id], r = sb(p.list);
+    return '<div class="h"><b>'+p.code+' 필요 예치금 계산</b><span>연 1.8% 세전 · 이자소득세 15.4%</span></div>'+
+      '<div class="tbl"><table><tr><th>판매가(월)</th><th>필요 예치금(세전)</th><th>필요 예치금(세후)</th><th>권장 예치금</th><th>월 이자(세후)</th><th>한도(1억) 내</th></tr>'+
+      '<tr><td class="num">'+p.list.toLocaleString("ko-KR")+'</td><td class="num">'+Math.round(r.pre).toLocaleString("ko-KR")+'</td><td class="num">'+Math.round(r.post).toLocaleString("ko-KR")+'</td>'+
+      '<td class="hi num">'+r.rec.toLocaleString("ko-KR")+'</td><td class="num">'+Math.round(r.interest).toLocaleString("ko-KR")+'</td><td class="ok">O</td></tr></table></div>'+
+      '<div class="kv"><div><span>세후 실효 이율</span><b class="num">연 '+(RATE*(1-TAX)*100).toFixed(3)+'%</b></div>'+
+      '<div><span>월요금 대비 배수(세후)</span><b class="num">약 '+Math.round(12/RATE/(1-TAX))+'배</b></div>'+
+      '<div><span>이자 − 요금</span><b class="ok num">+'+won(r.interest-p.list)+' / 월</b></div>'+
+      '<div><span>원금</span><b class="blue">손실 없음 · 언제든 전액 회수</b></div></div>';
+  }
+
+  /* ---------- state & render ---------- */
+  var scheme = "26";
+  var sel = {"26":"30","sb":"30"};
+  var $ = function(id){ return document.getElementById(id); };
+
+  function renderPlans(){
+    $("plans-26").innerHTML = ORDER_26.map(function(id){ return card26(id, id===sel["26"]); }).join("");
+    $("plans-sb").innerHTML = ORDER_SB.map(function(id){ return cardSb(id, id===sel["sb"]); }).join("");
+    $("detail-26").innerHTML = detail26(sel["26"]);
+    $("detail-sb").innerHTML = detailSb(sel["sb"]);
+    renderCta();
+  }
+  function renderCta(){
+    var id = sel[scheme], p = PLANS[id];
+    if(scheme==="26"){
+      var s = schedule(p.base);
+      $("cta-label").textContent = "26주 통신비 챌린지 · " + p.code;
+      $("cta-text").textContent = p.data+p.unit+" · "+won(s[0])+"부터 만기월 0원";
+    }else{
+      var r = sb(p.list);
+      $("cta-label").textContent = "세이프박스 이자로 내는 통신비 · " + p.code;
+      $("cta-text").textContent = p.data+p.unit+" · 예치 "+man(r.rec)+" · 매월 0원";
+    }
+  }
+  function setScheme(s, scroll){
+    scheme = s;
+    document.querySelectorAll(".tabs [role=tab]").forEach(function(t){ t.setAttribute("aria-selected", String(t.getAttribute("data-scheme")===s)); });
+    $("panel-26").hidden = s!=="26";
+    $("panel-sb").hidden = s!=="sb";
+    renderCta();
+    if(scroll){ $("plans").scrollIntoView({behavior:"smooth", block:"start"}); }
+  }
+
+  document.querySelectorAll(".tabs [role=tab]").forEach(function(t){
+    t.addEventListener("click", function(){ setScheme(t.getAttribute("data-scheme"), false); });
+  });
+  document.querySelectorAll("[data-go]").forEach(function(b){
+    b.addEventListener("click", function(){ setScheme(b.getAttribute("data-go"), true); });
+  });
+  document.addEventListener("click", function(e){
+    var btn = e.target.closest(".plan"); if(!btn) return;
+    var wrap = btn.parentElement, s = wrap.id==="plans-26" ? "26" : "sb";
+    sel[s] = btn.getAttribute("data-plan");
+    wrap.querySelectorAll(".plan").forEach(function(b){ b.setAttribute("aria-pressed", String(b===btn)); });
+    $(s==="26" ? "detail-26" : "detail-sb").innerHTML = s==="26" ? detail26(sel[s]) : detailSb(sel[s]);
+    renderCta();
+  });
+
+  var toastTimer;
+  $("cta-btn").addEventListener("click", function(){
+    var p = PLANS[sel[scheme]], t = $("toast");
+    t.textContent = "프로토타입: " + p.code + " · " + (scheme==="26" ? "26주적금 개설 화면" : "세이프박스 예치 화면") + "으로 이어져요";
+    t.classList.add("on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove("on"); }, 2600);
+  });
+
+  /* ---------- hero carousel: swipe + auto-rotate every 5s, pauses while touched/hovered ---------- */
+  var rail = $("rail"), dots = $("dots").children, idx = 0, timer, paused = false;
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function goTo(i){ idx = (i+2)%2; rail.scrollTo({left: idx*rail.clientWidth, behavior: reduce?"auto":"smooth"}); }
+  function syncDots(){ var i = Math.round(rail.scrollLeft/rail.clientWidth); if(i!==idx){ idx=i; } for(var k=0;k<dots.length;k++) dots[k].classList.toggle("on", k===idx); }
+  function start(){ stop(); if(reduce) return; timer = setInterval(function(){ if(!paused && document.visibilityState==="visible") goTo(idx+1); }, 5000); }
+  function stop(){ clearInterval(timer); }
+  rail.addEventListener("scroll", function(){ clearTimeout(rail._t); rail._t = setTimeout(syncDots, 80); }, {passive:true});
+  ["touchstart","pointerdown","mouseenter","focusin"].forEach(function(ev){ rail.addEventListener(ev, function(){ paused = true; }, {passive:true}); });
+  ["touchend","pointerup","mouseleave","focusout"].forEach(function(ev){ rail.addEventListener(ev, function(){ paused = false; }, {passive:true}); });
+  window.addEventListener("resize", function(){ rail.scrollTo({left: idx*rail.clientWidth}); });
+
+  renderPlans();
+  start();
+})();
+</script>
+</body>
+</html>
